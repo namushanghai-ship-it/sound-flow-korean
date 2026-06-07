@@ -219,6 +219,19 @@
     font-size: 0.98rem;
   }
 
+  .context-label {
+    display: inline-flex;
+    max-width: 100%;
+    margin: 0 0 14px;
+    border-radius: 999px;
+    padding: 5px 11px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 800;
+    line-height: 1.35;
+  }
+
   .case-preview {
     display: grid;
     grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.55fr);
@@ -359,6 +372,20 @@
     border-radius: 10px;
     padding: 28px;
     background: var(--soft);
+  }
+
+  .match-header {
+    display: grid;
+    grid-template-columns: minmax(100px, 0.7fr) 1fr auto 1fr;
+    gap: 18px;
+    margin: 8px 0 2px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .match-column {
+    text-align: center;
   }
 
   .match-row {
@@ -559,6 +586,16 @@
     .match-row {
       grid-template-columns: 1fr;
       gap: 6px;
+      text-align: left;
+    }
+
+    .match-header {
+      grid-template-columns: 1fr;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .match-column {
       text-align: left;
     }
 
@@ -793,6 +830,8 @@ const copy = {
       votes: "득표수",
       earlyVoting: "관내 사전투표",
       electionDayVoting: "당일투표",
+      dataType: "관내사전투표",
+      dataBasis: "데이터 기준: 관내사전투표",
       pending: "공식 데이터 확인 후 반영 예정",
       pendingShort: "당일투표 상세 수치 입력 예정",
       voteUnit: "표",
@@ -804,8 +843,8 @@ const copy = {
       "이기붕": "이기붕"
     },
     matching: {
-      title: "두 숫자가 동시에 같았다",
-      desc: "총투표자 수는 달랐지만,\n주요 두 후보의 득표수는 완전히 같았습니다."
+      title: "관내사전투표에서 두 후보 득표수가 동시에 같았다",
+      desc: "송도1동과 송도2동의 관내사전투표 총참여자 수는 달랐지만,\n주요 두 후보의 관내사전투표 득표수는 정확히 같았습니다."
     },
     votingCompare: {
       title: "사전투표와 당일투표는 어떻게 달랐나",
@@ -829,7 +868,7 @@ const copy = {
       ]
     },
     probability: {
-      label: "단순화된 통계 모델에 따른 추정치",
+      label: "관내사전투표 득표수 일치에 대한 단순화된 통계 모델 추정치",
       number: "약 38,999,055분의 1",
       desc: "두 동이 독립적으로 진행되어 동시에 같은 결과가 나올 가능성을 단순화해 계산한 값입니다.",
       note: "이 값은 단순화된 통계 모델에 따른 추정치입니다.\n실제 투표에는 지역 성향, 사전투표 참여층, 후보 지지 기반 등 여러 요인이 반영될 수 있습니다."
@@ -975,6 +1014,8 @@ const copy = {
       votes: "Votes",
       earlyVoting: "In-district early voting",
       electionDayVoting: "Election-day voting",
+      dataType: "In-district early voting",
+      dataBasis: "Data type: In-district early voting",
       pending: "Election-day vote details will be added after official data verification.",
       pendingShort: "Election-day vote details pending",
       voteUnit: "votes",
@@ -986,8 +1027,8 @@ const copy = {
       "이기붕": "Lee Gi-bung"
     },
     matching: {
-      title: "Two vote counts matched at the same time",
-      desc: "The total number of voters differed,\nyet the vote counts for the two leading candidates were exactly the same."
+      title: "Two candidate vote counts matched in in-district early voting",
+      desc: "The total number of in-district early voters differed between Songdo 1-dong and Songdo 2-dong,\nyet the in-district early vote counts for the two leading candidates were exactly the same."
     },
     votingCompare: {
       title: "How early voting and election-day voting differed",
@@ -1011,7 +1052,7 @@ const copy = {
       ]
     },
     probability: {
-      label: "An estimate based on a simplified statistical model",
+      label: "A simplified statistical estimate for the matching in-district early vote counts",
       number: "About 1 in 38,999,055",
       desc: "A simplified estimate of the chance that both areas independently produce the same matching vote counts.",
       note: "This value is based on a simplified statistical model.\nReal voting behavior can be affected by local tendencies, early-voter composition, candidate support bases, and other factors."
@@ -1164,6 +1205,7 @@ function renderDistrictCards(lang) {
     return `
       <article class="district-card">
         <h3>${labels[key]}</h3>
+        <span class="context-label">${labels.dataType}</span>
         <div class="meta-grid">
           <div class="metric">
             <span class="label">${labels.voters}</span>
@@ -1186,6 +1228,7 @@ function renderDistrictCards(lang) {
 
 function renderMatchingBox(lang) {
   const labels = copy[lang].candidateLabels;
+  const dataLabels = copy[lang].dataLabels;
   const matching = copy[lang].matching;
   const candidates = ["박찬대", "유정복"];
   const box = document.getElementById("matchingBox");
@@ -1203,7 +1246,17 @@ function renderMatchingBox(lang) {
     `;
   }).join("");
 
-  box.innerHTML = `${rows}<p class="match-desc">${matching.desc}</p>`;
+  box.innerHTML = `
+    <span class="context-label">${dataLabels.dataBasis}</span>
+    <div class="match-header">
+      <span></span>
+      <span class="match-column">${dataLabels.songdo1}</span>
+      <span></span>
+      <span class="match-column">${dataLabels.songdo2}</span>
+    </div>
+    ${rows}
+    <p class="match-desc">${matching.desc}</p>
+  `;
 }
 
 function renderVoteModeCards(lang) {
