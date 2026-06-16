@@ -239,9 +239,9 @@ function PhraseCard({ phrase, showLinks }: { phrase: Phrase; showLinks: boolean 
       <div className="flex items-start gap-3">
         <SoundButton text={phrase.ko} />
         <div className="min-w-0 flex-1">
-          <h3 className="break-keep text-[26px] font-black leading-tight text-[#1A1714]" style={{ fontFamily: KO }}>{phrase.ko}</h3>
-          <p className="mt-1 text-[19px] font-bold text-[#127C71]">{phrase.roman || result.roman}</p>
-          <p className="mt-1 text-[14px] text-[#6f6b62]">{phrase.en} · 들리는 대로 <span style={{ fontFamily: KO }}>{result.hangul}</span></p>
+          <p className="text-[24px] font-bold leading-tight text-[#127C71]">{phrase.roman || result.roman}</p>
+          <p className="mt-1 break-keep text-[16px] font-normal leading-tight text-[#1A1714]" style={{ fontFamily: KO }}>{phrase.ko}</p>
+          <p className="mt-1 text-[14px] text-[#8A857C]">{phrase.en}</p>
         </div>
       </div>
       {showLinks && result.links.length > 0 && <LiaisonArc chars={result.chars} links={result.links} />}
@@ -286,8 +286,8 @@ export default function KoreanReader() {
               <div className="flex items-start gap-3">
                 <SoundButton text={input} />
                 <div className="min-w-0 flex-1">
-                  <p className="break-keep text-2xl font-black text-[#127C71]" style={{ fontFamily: KO }}>{custom.hangul}</p>
-                  <p className="mt-1 text-sm font-bold text-[#127C71]">{custom.roman}</p>
+                  <p className="text-[24px] font-bold leading-tight text-[#127C71]">{custom.roman}</p>
+                  <p className="mt-1 break-keep text-[16px] font-normal leading-tight text-[#1A1714]" style={{ fontFamily: KO }}>{input}</p>
                 </div>
               </div>
               {showLinks && custom.links.length > 0 && <LiaisonArc chars={custom.chars} links={custom.links} />}
