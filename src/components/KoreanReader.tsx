@@ -175,14 +175,14 @@ function speak(text: string) {
     s.cancel();
 
     // 1) 무음 워밍업
-    const warmup = new SpeechSynthesisUtterance("\u00A0");
+    const warmup = new SpeechSynthesisUtterance(" ");
     warmup.volume = 0;
     warmup.lang = "ko-KR";
     s.speak(warmup);
 
     // 2) 실제 텍스트 앞에 공백 패딩 + 살짝 딜레이
     warmup.onend = () => {
-      const u = new SpeechSynthesisUtterance("\u00A0\u00A0" + text);
+      const u = new SpeechSynthesisUtterance("  " + text);
       u.lang = "ko-KR";
       u.rate = 0.82;
       u.pitch = 1.0;
@@ -199,40 +199,19 @@ function SoundButton({ text }: { text: string }) {
   );
 }
 
-function LiaisonArc({ chars, links }: { chars: string[]; links: Link[] }) {
-  const cell = 38;
-  const row = 46;
-  const arc = 34;
-  const width = Math.max(chars.length * cell, 96);
-  const height = row + arc;
+function PhoneticDiff({ original, transformed }: { original: string; transformed: string }) {
+  const origChars = [...original];
+  const tranChars = [...transformed];
   return (
-    <div className="mt-4 overflow-x-auto rounded-lg border border-[#E7E4DC] bg-[#FBFAF7] px-2 py-2">
-      <div className="relative" style={{ width, height }}>
-        <div className="flex" style={{ height: row }}>
-          {chars.map((ch, index) => (
-            <div key={`${ch}-${index}`} className="text-center text-[28px] font-bold text-[#1A1714]" style={{ width: cell, height: row, lineHeight: `${row}px`, fontFamily: KO }}>{ch === " " ? "\u00A0" : ch}</div>
-          ))}
-        </div>
-        <svg width={width} height={height} className="pointer-events-none absolute left-0 top-0 overflow-visible">
-          <defs><marker id="reader-arrow" markerWidth="7" markerHeight="7" refX="3.5" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 z" fill={ACCENT} /></marker></defs>
-          {links.map((link, index) => {
-            const x1 = (link.from + 0.55) * cell;
-            const x2 = (link.to + 0.5) * cell - 8;
-            const mid = (x1 + x2) / 2;
-            return (
-              <g key={`${link.from}-${link.to}-${index}`}>
-                <path d={`M ${x1} ${row - 5} Q ${mid} ${height - 2} ${x2} ${row - 5}`} fill="none" stroke={ACCENT} strokeDasharray={link.drop ? "3 3" : undefined} strokeLinecap="round" strokeWidth="1.9" markerEnd="url(#reader-arrow)" />
-                <text x={mid} y={height - 2} textAnchor="middle" fontSize="12" fill={ACCENT} style={{ fontFamily: KO }}>{link.drop ? `${link.jamo}↓` : link.jamo}</text>
-              </g>
-            );
-          })}
-        </svg>
-      </div>
-    </div>
+    <>
+      {tranChars.map((ch, i) => (
+        <span key={i} style={{ color: origChars[i] === ch ? "#8A857C" : "#E07B39" }}>{ch}</span>
+      ))}
+    </>
   );
 }
 
-function PhraseCard({ phrase, showLinks }: { phrase: Phrase; showLinks: boolean }) {
+function PhraseCard({ phrase, showSounds }: { phrase: Phrase; showSounds: boolean }) {
   const result = useMemo(() => analyze(phrase.ko), [phrase.ko]);
   return (
     <article className="rounded-lg border border-[#E7E4DC] bg-white p-4 shadow-sm">
@@ -241,34 +220,31 @@ function PhraseCard({ phrase, showLinks }: { phrase: Phrase; showLinks: boolean 
         <div className="min-w-0 flex-1">
           <p className="text-[24px] font-bold leading-tight text-[#127C71]">{phrase.roman || result.roman}</p>
           <p className="mt-1 break-keep text-[16px] font-normal leading-tight text-[#1A1714]" style={{ fontFamily: KO }}>{phrase.ko}</p>
+          {showSounds && result.hangul !== phrase.ko && (
+            <p className="mt-0.5 break-keep text-[16px] font-normal leading-tight" style={{ fontFamily: KO }}>
+              <PhoneticDiff original={phrase.ko} transformed={result.hangul} />
+            </p>
+          )}
           <p className="mt-1 text-[14px] text-[#8A857C]">{phrase.en}</p>
         </div>
       </div>
-      {showLinks && result.links.length > 0 && <LiaisonArc chars={result.chars} links={result.links} />}
     </article>
   );
 }
 
-export default function KoreanReader() {
+export default function KoreanReader({ showSounds }: { showSounds: boolean }) {
   const categories = Object.keys(DATA);
   const [category, setCategory] = useState(categories[0]);
-  const [showLinks, setShowLinks] = useState(false);
   const [input, setInput] = useState("같이 가요");
   const hasHangul = /[가-힣]/.test(input);
   const custom = useMemo(() => (input.trim() && hasHangul ? analyze(input) : null), [input, hasHangul]);
   return (
     <section className="min-h-[calc(100vh-8rem)] w-full bg-[#F4F4F1] px-4 py-5 text-[#1A1714] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-4xl">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#127C71]">For travelers</p>
-            <h1 className="mt-2 text-3xl font-black sm:text-4xl" style={{ fontFamily: KO }}>한글 읽기</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6f6b62]">한글을 몰라도 실제로 들리는 소리와 받침 이동을 보고 따라 읽을 수 있게 만든 여행 표현 연습장입니다.</p>
-          </div>
-          <button onClick={() => setShowLinks((value) => !value)} className="flex h-10 items-center justify-between gap-3 rounded-full border border-[#DCD8CF] bg-white px-4 text-sm font-bold text-[#5f5b53]">
-            <span>연음 보기</span>
-            <span className="relative h-6 w-11 rounded-full transition-colors" style={{ background: showLinks ? ACCENT : "#D4D0C7" }}><span className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all" style={{ left: showLinks ? 22 : 2 }} /></span>
-          </button>
+        <div className="mb-1">
+          <p className="text-xs font-bold uppercase tracking-[0.24em] text-[#127C71]">For travelers</p>
+          <h1 className="mt-2 text-3xl font-black sm:text-4xl" style={{ fontFamily: KO }}>한글 읽기</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6f6b62]">한글을 몰라도 실제로 들리는 소리와 받침 이동을 보고 따라 읽을 수 있게 만든 여행 표현 연습장입니다.</p>
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
           {categories.map((name) => (
@@ -276,7 +252,7 @@ export default function KoreanReader() {
           ))}
         </div>
         <div className="mt-5 grid gap-3">
-          {DATA[category].map((phrase) => <PhraseCard key={phrase.ko} phrase={phrase} showLinks={showLinks} />)}
+          {DATA[category].map((phrase) => <PhraseCard key={phrase.ko} phrase={phrase} showSounds={showSounds} />)}
         </div>
         <div className="mt-6 rounded-lg border border-[#E7E4DC] bg-white p-4 shadow-sm sm:p-5">
           <label htmlFor="reader-input" className="text-sm font-black" style={{ fontFamily: KO }}>직접 입력</label>
@@ -288,9 +264,13 @@ export default function KoreanReader() {
                 <div className="min-w-0 flex-1">
                   <p className="text-[24px] font-bold leading-tight text-[#127C71]">{custom.roman}</p>
                   <p className="mt-1 break-keep text-[16px] font-normal leading-tight text-[#1A1714]" style={{ fontFamily: KO }}>{input}</p>
+                  {showSounds && custom.hangul !== input && (
+                    <p className="mt-0.5 break-keep text-[16px] font-normal leading-tight" style={{ fontFamily: KO }}>
+                      <PhoneticDiff original={input} transformed={custom.hangul} />
+                    </p>
+                  )}
                 </div>
               </div>
-              {showLinks && custom.links.length > 0 && <LiaisonArc chars={custom.chars} links={custom.links} />}
             </div>
           )}
           {input.trim() && !hasHangul && <p className="mt-3 rounded-lg border border-dashed border-[#DCD8CF] bg-[#FBFAF7] p-3 text-sm text-[#7f796f]">영어 입력은 아직 변환하지 않아요. 이 도구는 한글을 실제 발음에 가까운 한글과 로마자로 바꾸는 학습용 엔진입니다.</p>}
