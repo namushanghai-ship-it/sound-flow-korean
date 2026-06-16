@@ -169,27 +169,34 @@ function analyze(text: string): AnalyzeResult {
   return { chars, links, hangul: tokens.map(compose).join(""), roman: romanize(tokens) };
 }
 
-let warmed = false;
-function speak(text: string, rate = 0.85) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  const synth = window.speechSynthesis;
-  if (!warmed) {
-    const warmup = new SpeechSynthesisUtterance(" ");
+function speak(text: string) {
+  try {
+    const s = window.speechSynthesis;
+    s.cancel();
+
+    // 1) 무음 워밍업
+    const warmup = new SpeechSynthesisUtterance("\u00A0");
     warmup.volume = 0;
-    synth.speak(warmup);
-    warmed = true;
+    warmup.lang = "ko-KR";
+    s.speak(warmup);
+
+    // 2) 실제 텍스트 앞에 공백 패딩 + 살짝 딜레이
+    warmup.onend = () => {
+      const u = new SpeechSynthesisUtterance("\u00A0\u00A0" + text);
+      u.lang = "ko-KR";
+      u.rate = 0.82;
+      u.pitch = 1.0;
+      s.speak(u);
+    };
+  } catch (e) {
+    console.error("Speech error:", e);
   }
-  if (synth.speaking) synth.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "ko-KR";
-  utterance.rate = rate;
-  synth.speak(utterance);
 }
 
 function SoundButton({ text }: { text: string }) {
   return (
     <div className="flex shrink-0 gap-2">
-      <button onClick={() => speak(text, 0.62)} className="grid h-10 w-10 place-items-center rounded-full text-[11px] font-black text-white active:scale-95" style={{ background: ACCENT }} aria-label="천천히 듣기">느림</button>
+      <button onClick={() => speak(text)} className="grid h-10 w-10 place-items-center rounded-full text-[11px] font-black text-white active:scale-95" style={{ background: ACCENT }} aria-label="천천히 듣기">느림</button>
       <button onClick={() => speak(text)} className="grid h-10 w-10 place-items-center rounded-full text-sm font-black text-white active:scale-95" style={{ background: "#1A1714" }} aria-label="보통 속도로 듣기">▶</button>
     </div>
   );
