@@ -58,7 +58,7 @@ const DATA: Record<string, Phrase[]> = {
     { ko: "넷", roman: "net", en: "Four" },
     { ko: "다섯", roman: "daseot", en: "Five" },
   ],
-  "급할때": [
+  "급할 때": [
     { ko: "도와주세요!", roman: "dowajuseyo", en: "Help!" },
     { ko: "병원", roman: "byeongwon", en: "Hospital" },
     { ko: "경찰", roman: "gyeongchal", en: "Police" },
@@ -195,10 +195,7 @@ function speak(text: string) {
 
 function SoundButton({ text }: { text: string }) {
   return (
-    <div className="flex shrink-0 gap-2">
-      <button onClick={() => speak(text)} className="grid h-10 w-10 place-items-center rounded-full text-[11px] font-black text-white active:scale-95" style={{ background: ACCENT }} aria-label="천천히 듣기">느림</button>
-      <button onClick={() => speak(text)} className="grid h-10 w-10 place-items-center rounded-full text-sm font-black text-white active:scale-95" style={{ background: "#1A1714" }} aria-label="보통 속도로 듣기">▶</button>
-    </div>
+    <button onClick={() => speak(text)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-base active:scale-95" style={{ background: "#1A1714" }} aria-label="듣기">🔊</button>
   );
 }
 
@@ -242,13 +239,9 @@ function PhraseCard({ phrase, showLinks }: { phrase: Phrase; showLinks: boolean 
       <div className="flex items-start gap-3">
         <SoundButton text={phrase.ko} />
         <div className="min-w-0 flex-1">
-          <h3 className="break-keep text-[28px] font-black leading-tight text-[#1A1714]" style={{ fontFamily: KO }}>{phrase.ko}</h3>
-          <div className="mt-3 rounded-lg border border-[#CFEDE7] bg-[#F0FAF8] px-3 py-2">
-            <p className="break-keep text-[23px] font-black leading-tight text-[#127C71]" style={{ fontFamily: KO }}>{result.hangul}</p>
-            <p className="mt-1 text-xs text-[#6f6b62]">들리는 대로</p>
-          </div>
-          <p className="mt-2 text-base font-bold text-[#127C71]">{phrase.roman || result.roman}</p>
-          <p className="mt-1 text-sm text-[#1A1714]">{phrase.en}</p>
+          <h3 className="break-keep text-[26px] font-black leading-tight text-[#1A1714]" style={{ fontFamily: KO }}>{phrase.ko}</h3>
+          <p className="mt-1 text-[19px] font-bold text-[#127C71]">{phrase.roman || result.roman}</p>
+          <p className="mt-1 text-[14px] text-[#6f6b62]">{phrase.en} · 들리는 대로 <span style={{ fontFamily: KO }}>{result.hangul}</span></p>
         </div>
       </div>
       {showLinks && result.links.length > 0 && <LiaisonArc chars={result.chars} links={result.links} />}
@@ -282,7 +275,7 @@ export default function KoreanReader() {
             <button key={name} onClick={() => setCategory(name)} className={`rounded-full border px-4 py-2 text-sm font-bold transition ${category === name ? "border-transparent text-white" : "border-[#DCD8CF] bg-white text-[#5f5b53] hover:border-[#127C71]"}`} style={category === name ? { background: ACCENT } : undefined}>{name}</button>
           ))}
         </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
+        <div className="mt-5 grid gap-3">
           {DATA[category].map((phrase) => <PhraseCard key={phrase.ko} phrase={phrase} showLinks={showLinks} />)}
         </div>
         <div className="mt-6 rounded-lg border border-[#E7E4DC] bg-white p-4 shadow-sm sm:p-5">
